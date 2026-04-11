@@ -236,23 +236,28 @@ class PostViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        """Automatically set author = current user"""
         logger.info('Creating post user %s', self.request.user.email)
         serializer.save(author=self.request.user)
         self._invalidate_all_caches()
-        logger.info('Post create %s, cache cleared for all languages', serializer.instance.title)
+        from apps.blog.tasks import invalidate_posts_cache
+        invalidate_posts_cache.delay()
+        logger.info('Post create %s, cache cleared', serializer.instance.title)
 
     def perform_update(self, serializer):
         logger.info('Updating post %s user %s', serializer.instance.title, self.request.user.email)
         serializer.save()
         self._invalidate_all_caches()
+        from apps.blog.tasks import invalidate_posts_cache
+        invalidate_posts_cache.delay()
         logger.info('Post update, cache clean')
 
     def perform_destroy(self, instance):
         logger.info('Deleting post %s user %s', instance, self.request.user.email)
         instance.delete()
         self._invalidate_all_caches()
-        logger.info('Post delete, cache clean for all languages')
+        from apps.blog.tasks import invalidate_posts_cache
+        invalidate_posts_cache.delay()
+        logger.info('Post delete, cache clean')
 
     def _invalidate_all_caches(self):
         """Helper method to invalidate caches for all languages."""
