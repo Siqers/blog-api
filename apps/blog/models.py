@@ -83,7 +83,7 @@ class Post(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'draft', _('draft')
         PUBLISHED = 'published', _('published')
-    
+        SCHEDULED = 'scheduled', _('scheduled')
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
@@ -110,6 +110,8 @@ class Post(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated'))
+    publish_at = models.DateTimeField(null = True, blank = True, verbose_name= _('Publish at'))
+    published_at = models.DateTimeField(null = True, blank = True, verbose_name= _('Published at'))
 
     class Meta:
         ordering = ['-created_at']

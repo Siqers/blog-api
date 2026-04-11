@@ -1,5 +1,5 @@
 import logging
-from django.conf import settings
+from apps.users.tasks import send_welcome_email
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import translation
@@ -126,8 +126,7 @@ class RegisterViewSet(viewsets.ViewSet):
             logger.info('User is registered %s', user.email)
 
             # Send welcome email
-            self._send_welcome_email(user)
-
+            send_welcome_email.delay(user.id)
             return Response({
                 'user': UserSerializer(user).data,
                 'tokens': {

@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.users',
     'apps.blog',
+    'channels',
+    'apps.notifications',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -250,4 +252,18 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Comments', 'description': 'Endpoints for managing comments on blog posts.'},
         {'name': 'Statistics', 'description': 'Endpoints for retrieving various statistics about posts and comments.'},
     ],
+}
+# Celery
+CELERY_BROKER_URL = conf.CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = conf.CELERY_BROKER_URL
+
+# Channels
+ASGI_APPLICATION = 'settings.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [conf.REDIS_URL],
+        },
+    },
 }
