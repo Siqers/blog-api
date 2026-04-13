@@ -10,7 +10,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - sqlite_data:/app/db.sqlite3
+      - sqlite_data:/app/db
 
   redis:
     image: redis:7-alpine

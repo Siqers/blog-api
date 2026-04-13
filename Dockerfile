@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y \
     gettext \
+    redis-tools \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -11,7 +12,10 @@ RUN pip install --no-cache-dir -r requirements/base.txt
 
 COPY . .
 
-RUN useradd -m appuser && chown -R appuser:appuser /app
+RUN mkdir -p /app/logs && \
+    useradd -m appuser && \
+    chown -R appuser:appuser /app
+
 USER appuser
 
 ENTRYPOINT ["scripts/entrypoint.sh"]
