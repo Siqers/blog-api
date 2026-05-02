@@ -1,86 +1,41 @@
-# Blog API
+## HW4 — Nginx Reverse Proxy
 
-REST API for a blog with JWT authentication.
+### Verification Steps
 
-## ERD (Entity-Relationship Diagram)
-
-![ERD](docs/erd.png)
-
-## Installation
-
-1. Clone the repository:
+**1. nginx is running and proxying to Django:**
 ```bash
-git clone https://github.com/Nurasyl555/blog-api.git
-cd blog-api
+curl -I http://localhost/admin/login/
+# Expected: 200 OK with Server: nginx/1.27.5
 ```
 
-2. Create a virtual environment:
+**2. Static files served by nginx with cache:**
 ```bash
-python -m venv venv
-source venv/bin/activate # Linux/Mac
-venv\Scripts\activate # Windows
+curl -I http://localhost/static/admin/css/base.css
+# Expected: 200 OK with Cache-Control: max-age=2592000
 ```
 
-3. Install dependencies:
+**3. API returns JSON:**
 ```bash
-pip install -r requirements/dev.txt
+curl http://localhost/api/posts/
+# Expected: {"count":0,"next":null,"previous":null,"results":[]}
 ```
 
-4. Create a `.env` file in the folder `settings/`:
-```env
-BLOG_SECRET_KEY=your-secret-key
-BLOG_DEBUG=True
-```
-
-5. Apply migrations:
+**4. nginx returns 502 when web is down:**
 ```bash
-python manage.py migrate
+docker compose stop web
+curl -I http://localhost/api/posts/
+# Expected: 502 Bad Gateway from nginx
+docker compose start web
 ```
 
-6. Create a superuser:
+**5. Port 8000 is not accessible from host:**
 ```bash
-python manage.py createsuperuser
+curl http://localhost:8000/
+# Expected: connection refused
 ```
 
-7. Start Redis:
+**6. WebSocket upgrade:**
 ```bash
-redis-server
+wscat -c "ws://localhost/ws/posts/<slug>/comments/?token=<jwt>"
+# Expected: 101 Switching Protocols
 ```
-
-8. Start the server:
-```bash
-python manage.py runserver
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register/` - Registration (5 req/min)
-- `POST /api/auth/token/` - Receive tokens (10 req/min)
-- `POST /api/auth/token/refresh/` - Refresh access token
-
-### Posts
-- `GET /api/posts/` - List of posts (cached for 60 seconds)
-- `POST /api/posts/` - Create a post (20 req/min)
-- `GET /api/posts/{slug}/` - Single post
-- `PATCH /api/posts/{slug}/` - Update post
-- `DELETE /api/posts/{slug}/` - Delete post
-
-### Comments
-- `GET /api/posts/{slug}/comments/` - Comments on a post
-- `POST /api/posts/{slug}/comments/` - Add a comment
-
-## Redis Pub/Sub
-
-To listen for comment events:
-```bash
-python manage.py listen_comments
-```
-
-## Technologies
-
-- Django 5.0
-- Django REST Framework
-- JWT Authentication
-- Redis (cache, rate limiting, pub/sub)
-- SQLite (dev) / PostgreSQL (prod)

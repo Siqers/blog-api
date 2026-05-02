@@ -12,11 +12,7 @@ RUN pip install --no-cache-dir -r requirements/base.txt
 
 COPY . .
 
-RUN mkdir -p /app/logs && \
-    useradd -m appuser && \
-    chown -R appuser:appuser /app
-
-USER appuser
+RUN mkdir -p /app/logs /app/staticfiles /app/media
 
 ENTRYPOINT ["scripts/entrypoint.sh"]
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "settings.asgi:application"]
